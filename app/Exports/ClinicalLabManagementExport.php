@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Exports;
+
+use App\Models\ClinicalLabManagement;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+
+class ClinicalLabManagementExport implements FromCollection,WithHeadings
+{
+    /**
+    * @return \Illuminate\Support\Collection
+    */
+    protected $from_date ;
+    protected $to_date ;
+    public function __construct($from,$to)
+    {
+       $this->from_date = $from;
+       $this->to_date   = $to;
+    }
+    public function collection()
+    {
+        $from   = $this->from_date;
+        $to     = $this->to_date;
+        return ClinicalLabManagement::select('doctors_name','specialization','associated_hospitals_clinics','email','mobile','message','created_at')
+        ->when($from != '', function ($query) use ($from) {
+            $query->whereDate('created_at', '>=', $from);
+        })
+        ->when($to != '', function ($query) use ($to) {
+            $query->whereDate('created_at', '<=', $to);
+        })
+        ->get();
+    }
+    public function headings(): array
+    {
+        return [
+            'Doctors Name',
+            'Specialization',
+            'Associated hospital address',
+            'Email',
+            'Mobile',
+            'Message',
+            'Created Date'
+        ];
+    }
+}

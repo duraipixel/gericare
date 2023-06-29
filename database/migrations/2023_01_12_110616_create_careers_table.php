@@ -15,13 +15,15 @@ class CreateCareersTable extends Migration
     {
         Schema::create('careers', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger("job_id")->nullable();
             $table->string("name")->nullable();
             $table->string("email")->nullable();
             $table->string("mobile")->nullable();
             $table->string("file")->nullable();
+            $table->string("designation")->nullable();
+            $table->string("relevant_experience")->nullable();
             $table->longText("message")->nullable();
-            $table->foreign('job_id')->references('id')->on('job_posts')->onDelete('cascade');
+            $table->enum('status', ['active', 'inactive']);
+            $table->enum('career_status', ['onhold', 'inprogress', 'hired', 'rejected']);
             $table->softDeletes();
             $table->timestamps();
         });

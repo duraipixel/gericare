@@ -15,13 +15,18 @@ class CreateEnquiriesTable extends Migration
     {
         Schema::create('enquiries', function (Blueprint $table) {
             $table->id();
-            $table->string("Name");
-            $table->string("Type")->nullable();
-            $table->string("Email");
-            $table->string("Mobile");
-            $table->string("Address");
-            $table->string("EnquiryType");
-            $table->string("EnquiryStatus");
+            $table->string("name");
+            $table->string("type")->nullable()->comment('contact', 'consult');
+            $table->string('enquiry_from')->nullable();
+            $table->string("email")->nullable();
+            $table->string("moble_no")->nullable();
+            $table->string("subject")->nullable();
+            $table->string("message")->nullable();
+            $table->unsignedBigInteger('service_id')->nullable();
+            $table->string('services')->nullable();
+            $table->enum("status", ['active', 'inactive'])->default('active');
+            $table->enum("enquiry_status", ['new', 'closed', 'verified', 'inprogress', 'converted', 'cancelled'])->default('new');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

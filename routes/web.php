@@ -2,7 +2,11 @@
 include 'auth.php';
 include 'admin.php';
 
+use App\Http\Controllers\Website\BookAppointmentController;
+use App\Http\Controllers\Website\CareerController;
+use App\Http\Controllers\Website\ConsultantFormController;
 use App\Http\Controllers\Website\PageViewController;
+use App\Models\BookAppointment;
 use Illuminate\Support\Facades\Route;
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +28,11 @@ Route::get('/', function(){
 // Route::get('/hospitals/gericare-hospitals',function(){
 //     return view('website.hospitals.gericare-hospitals');
 // });
+Route::post('/consultant/form/save',[ConsultantFormController::class,'submitConsultantForm'])->name('consultant.form.submit');
+Route::post('/appointment/form/save',[BookAppointmentController::class,'saveAppointment'])->name('appointment.form.submit');
+Route::post('/career/form/save',[CareerController::class,'applyJob'])->name('career.form.submit');
+
+
 Route::get('/gericare-hospital/about-hospital',[PageViewController::class,'aboutHospitalPage'])->name('gericare-hospital.about-hospital');
 
 Route::get('/gericare-hospital/hospital-department',[PageViewController::class,'hospitalDepartmentPage'])->name('gericare-hospital.hospital-department');

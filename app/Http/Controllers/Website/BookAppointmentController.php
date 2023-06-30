@@ -3,70 +3,52 @@
 namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
-use App\Mail\BookAppointmentMail;
 use App\Models\BookAppointment;
-use App\Models\Cities;
-use App\Models\Tests;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
-use Validator;
 
 class BookAppointmentController extends Controller
 {
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(),[
-            'name'                          => 'required',
-            'location_id'                   => 'required|numeric',
-            'test_id'                       => 'required|numeric',
-            'mobile'                        => 'required|numeric|digits:10',
-            'file'                        => 'required|mimes:png,jpg,jpeg,csv,xlx,xls,pdf,docx|max:2048',
-        ]);
-        if($validator->fails()){
-            return filedCall($validator->messages()); 
-        }
-        $data = new BookAppointment();
-        $data->name                                             = $request->name;
-        $data->location_id                                      = $request->location_id;
-        $data->mobile                                           = $request->mobile;
-        $data->test_id                                          = $request->test_id;
-        $data->test_type                                        = $request->test_type;
-        if($request->file('file'))
-        {
-            if($request->has('file')) {
-                if(Storage::exists($request->file)){
-                    Storage::delete($request->file);
-                } 
-                $file               =  $request->file('file')->store('public/files/appointment');
-                $data->file   =  $file;
-            }
-        }
-        $res = $data->save();
-        if($res)
-        {
-            $cityData = Cities::select('AreaName')->where('AreaId',$request->location_id)->first();
-            $testData = Tests::select('TestName')->where('id',$request->test_id)->first();
-            $details = [
-                'date_time'                 => now()->toDateString(),
-                'name'                      => $request->name,
-                'mobile'                    => $request->mobile,
-                'location'                  => $cityData['AreaName'],
-                'test'                      => $testData['TestName'],
-                'test_type'                 => $request->test_type,
-                'file'                      => asset_url($file),
-            ];
-            try{
-                $sent_mail = config('constant.sentMailId');
-                $bcc = config('constant.bccMailId');
+    
+    public function saveAppointment(Request $request) {
 
-                Mail::to($sent_mail)->bcc($bcc)->send(new BookAppointmentMail($details));
-            }catch(\Exception $e){
-                $message = 'Thanks for reach us, our team will get back to you shortly. Please setup your <a href="setting/mail_setting">mail setting</a> to send mail.';
-                return response()->json(['Status'=>200,'Errors'=>false,'Message'=>$message]);
-            }
-                return successCall();
+        $validator      = Validator::make($request->all(), [
+            'appointment_date' => 'required',
+            'appointment_time' => 'required',
+            'from' => 'required',
+            'services' => 'required_if:from,=,book_an_appointment',
+            'doctor_name' => 'required_if:from,=,book_an_appointment_doctor',
+            'name' => 'required',
+            'email' => 'required',
+            'mobile_no' => 'required',
+            'details' => 'required',
+        ]);
+
+        if ($validator->passes()) {
+            // $appointment_time = date('H:i:s', strtotime($request->appointment_time));
+            $appointment_date = str_replace('/', '-',$request->appointment_date);
+            $ins = [];
+            $ins['appointment_services'] = $request->services ?? null;
+            $ins['doctor_name'] = $request->doctor_name ?? null;
+            $ins['appointment_date'] = date('Y-m-d', strtotime($appointment_date));
+            $ins['appointment_time'] = date('H:i:s', strtotime($request->appointment_time));
+            $ins['enquiry_from'] = $request->from;
+            $ins['name'] = $request->name;
+            $ins['email'] = $request->email; 
+            $ins['mobile_no'] = $request->mobile_no ?? null;
+            $ins['message'] = $request->details ?? null;
+            $ins['enquiry_from_ip'] = $request->ip();
+            BookAppointment::create($ins);
+
+            $error                      = 0;
+            $message                    = 'Appointment Book request submitted successfully';
+
+        } else {
+            $error                      = 1;
+            $message                    = $validator->errors()->all();
         }
+        return response()->json(['error' => $error, 'message' => $message ]);
 
     }
+
 }

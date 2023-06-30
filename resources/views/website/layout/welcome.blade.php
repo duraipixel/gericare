@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Home Care Services For Elders In Chennai, Elderly Home Care Services | Geri Care </title>
     <meta name="viewport" content="width=device-width, initial-scale=1,  maximum-scale=1, user-scalable=0">
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('/public/website/assets/images/favicon.png') }}" />
@@ -55,7 +56,7 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('/public/website/assets/css/header.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('/public/website/assets/css/main.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('/public/website/assets/css/footer.css') }}">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"
         integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
@@ -129,7 +130,7 @@
     <script type="text/javascript" src="{{ asset('/public/website/assets/js/additional-methods.js') }}"></script>
     <!-- jAlert -->
     <script type="text/javascript" src="{{ asset('/public/website/assets/js/sweetalert.min.js') }}"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="{{ asset('/public/website/assets/js/main.js') }}"></script>
     <script src="{{ asset('/public/website/assets/js/mdtimepicker.min.js') }}"></script>
     <script src="{{ asset('/public/website/assets/js/jquery.mapit.js') }}"></script>
@@ -139,6 +140,38 @@
         $(document).ready(function() {
             $('#timepicker').mdtimepicker(); //Initializes the time picker
         });
+
+        $(".price").keypress(function(e) {
+            if (String.fromCharCode(e.keyCode).match(/[^.0-9]/g)) return false;
+        });
+        $('#AppointmentForm').submit(function() {
+            event.preventDefault();
+            var formData = $('#AppointmentForm').serialize();
+            $('#submit_btn').prop('disabled', 'true');
+
+            $.ajax({
+                url: "{{ route('appointment.form.submit') }}",
+                type: 'POST',
+                data: formData,
+                beforeSend: function() {},
+                success: function(res) {
+
+                    $('#submit_btn').prop('disabled', 'false');
+                    $("#submit_btn").attr("disabled", false);
+
+                    if (res.error == 0) {
+                        toastr.success('Success', res.message);
+                        $('#AppointmentForm')[0].reset();
+                    } else {
+                        if (res.message) {
+
+                            toastr.error("Error", res.message);
+
+                        }
+                    }
+                }
+            })
+        })
     </script>
 
     <script>
@@ -197,6 +230,7 @@
                 .toggleClass("fa-minus fa-plus");
         });
     </script>
+
 
 
     <script>
